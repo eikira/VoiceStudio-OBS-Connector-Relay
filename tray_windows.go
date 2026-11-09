@@ -90,6 +90,10 @@ const (
 	idAuto   = 3
 	idExit   = 4
 	idPort   = 5
+	idDir    = 6
+	idUpdate = 7
+	idCheck  = 8
+	idAutoUp = 9
 	idOK     = 1
 	idCancel = 2
 )
@@ -182,6 +186,15 @@ func shellOpen(verbTarget, params string) {
 		pp = uintptr(unsafe.Pointer(utf16p(params)))
 	}
 	pShellExecute.Call(0, uintptr(unsafe.Pointer(utf16p("open"))), uintptr(unsafe.Pointer(utf16p(verbTarget))), pp, 0, 1)
+}
+
+// openPath shows a folder in Explorer.
+func openPath(p string) error {
+	r, _, _ := pShellExecute.Call(0, uintptr(unsafe.Pointer(utf16p("open"))), uintptr(unsafe.Pointer(utf16p(p))), 0, 0, 1)
+	if r <= 32 {
+		return syscall.EINVAL
+	}
+	return nil
 }
 
 // ---- start with Windows (HKCU\...\Run) ----
@@ -338,10 +351,20 @@ func runUI(r *relay, cfg config) {
 			}
 			pAppendMenu.Call(m, flags, id, p)
 		}
-		add(mfString|mfGrayed|mfDisabled, 100, "VoiceStudio OBS Connector Relay - "+statusText)
+		add(mfString|mfGrayed|mfDisabled, 100, "VoiceStudio OBS Connector Relay "+version+" - "+statusText)
+		if latest, avail := r.upd.state(); avail {
+			add(mfString, idUpdate, "Update available: "+latest+" - open download page")
+		}
 		add(mfString, idOpen, "Open status page")
+		add(mfString, idDir, "Open relay folder")
 		add(mfString, idLog, "Show log")
 		add(mfString, idPort, "Change port...")
+		updFlags := uintptr(mfString)
+		if updatesEnabled() {
+			updFlags |= mfChecked
+		}
+		add(updFlags, idAutoUp, "Check for updates daily")
+		add(mfString, idCheck, "Check for updates now")
 		autoFlags := uintptr(mfString)
 		if autostartOn() {
 			autoFlags |= mfChecked
@@ -362,6 +385,29 @@ func runUI(r *relay, cfg config) {
 			shellOpen("notepad.exe", `"`+logPath()+`"`)
 		case idPort:
 			openPortDialog()
+		case idDir:
+			openPath(appDir())
+		case idUpdate:
+			shellOpen(releasePage, "")
+		case idAutoUp:
+			if updatesEnabled() {
+				writeSetting("UPDATECHECK", "off")
+			} else {
+				writeSetting("UPDATECHECK", "on")
+				r.upd.wake()
+			}
+		case idCheck:
+			go func() {
+				latest, avail, err := r.checkNow()
+				switch {
+				case err != nil:
+					balloon("Update check", "Could not reach GitHub. Please try again later.")
+				case avail:
+					balloon("Update available", "Version "+latest+" is available. Right-click the icon and choose \"Update available\" to open the download page.")
+				default:
+					balloon("Update check", "You have the newest version ("+version+").")
+				}
+			}()
 		case idAuto:
 			setAutostart(!autostartOn())
 		case idExit:
@@ -429,6 +475,10 @@ func runUI(r *relay, cfg config) {
 	}
 	notify(nimAdd, nid())
 	balloon("VoiceStudio OBS Connector Relay", "Running in the background. Right-click this icon for options. Free and open source.")
+
+	r.upd.setNotifier(func(v string) {
+		balloon("Update available", "Version "+v+" is available. Right-click the icon and choose \"Update available\" to open the download page. Nothing is installed automatically.")
+	})
 
 	// closing from outside (--stop) ends the message loop through the window
 	go func() {

@@ -3,3 +3,6 @@
 PORT=8787
 # HOST: 127.0.0.1 = only this PC (OBS on the same PC). Use 0.0.0.0 if OBS runs on another PC.
 HOST=127.0.0.1
+# UPDATECHECK: on = once a day the relay asks GitHub if a newer version exists (it only tells you, it never
+# installs anything, and sends nothing about you). off = never.
+UPDATECHECK=on

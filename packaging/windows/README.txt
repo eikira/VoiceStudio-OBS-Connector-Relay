@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.5 - Windows 10 / 11
+VoiceStudio OBS Connector Relay 0.0.6 - Windows 10 / 11
 =======================================================
 
 What it is: a small background program that connects the VoiceStudio OBS Connector
@@ -11,8 +11,20 @@ START   Double-click  VoiceStudio-OBS-Connector-Relay.exe
         drag it out to keep it visible.
 STOP    Double-click "Stop Relay.vbs", or right-click the tray icon -> "Stop relay and exit".
 
-Tray icon menu: Open status page, Show log, Change port..., Start with Windows,
-Stop relay and exit. Double-click the icon to open the status page.
+Tray icon menu: Open status page, Open relay folder, Show log, Change port...,
+Check for updates daily, Check for updates now, Start with Windows, Stop relay and exit.
+Double-click the icon to open the status page.
+
+UPDATES
+  Once a day the relay asks GitHub if a newer version exists. If so, a message pops up at the
+  icon and the menu gets an entry "Update available: x.y.z - open download page".
+  NOTHING is installed automatically. To update:
+   1. Right-click the icon -> "Stop relay and exit".
+   2. Download the new zip, unzip it, and copy the files over the old ones in this folder.
+      (Keep your own settings.txt if you changed the port.)
+   3. Start VoiceStudio-OBS-Connector-Relay.exe again.
+  "Open relay folder" in the menu shows you where the program is (the extension settings have
+  the same button). Switch the daily check off in the menu or with UPDATECHECK=off in settings.txt.
 
 CHANGE THE PORT (default 8787)
   Right-click the tray icon -> "Change port...", type a number from 1024 to 65535, OK.
@@ -30,6 +42,7 @@ First time:
 settings.txt (next to the program; stop and start the relay after editing by hand):
  PORT=8787
  HOST=127.0.0.1   only this PC. Use 0.0.0.0 if OBS runs on another PC.
+ UPDATECHECK=on   or off: the daily update check.
 
 Log: %LOCALAPPDATA%\VoiceStudioOBSRelay\relay.log  (tray menu -> Show log)
 Needs Windows 10 or 11.

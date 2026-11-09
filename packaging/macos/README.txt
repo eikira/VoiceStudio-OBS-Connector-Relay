@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.5 - macOS (Intel and Apple Silicon)
+VoiceStudio OBS Connector Relay 0.0.6 - macOS (Intel and Apple Silicon)
 =======================================================================
 
 What it is: a small background program that connects the VoiceStudio OBS Connector
@@ -10,11 +10,20 @@ PORT    Double-click "Change Port.command" (default 8787). Then set the same add
         extension settings ("Relay address") and use the new OBS URL.
 AUTO    "Start at Login (on).command" starts it when you log in; "(off)" removes that.
 
+UPDATES The relay asks GitHub once a day if a newer version exists and writes it to the log.
+        The extension settings also show it. NOTHING is installed automatically.
+        "Check for Updates.command" asks right now.
+        To update: "Stop Relay.command", then copy the new files over the old ones (keep your
+        own settings.txt if you changed the port), then start it again.
+        Switch the daily check off: put UPDATECHECK=off in settings.txt.
+FOLDER  The extension settings have an "Open relay folder" button (relay must be running).
+
 First time: macOS blocks files downloaded from the internet. Right-click "Start Relay.command"
 -> Open -> Open. (Once only. The script then clears the block for the program itself.)
 If it says a file is not executable, open Terminal and run:  chmod +x /path/to/folder/*
 
-settings.txt: PORT=8787, HOST=127.0.0.1 (use 0.0.0.0 if OBS runs on another computer).
+settings.txt: PORT=8787, HOST=127.0.0.1 (use 0.0.0.0 if OBS runs on another computer),
+              UPDATECHECK=on (or off).
 Log: ~/Library/Application Support/VoiceStudioOBSRelay/relay.log
 There is no menu-bar icon on macOS.
 

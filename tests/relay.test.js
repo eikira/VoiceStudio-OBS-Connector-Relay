@@ -43,7 +43,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 test.before(async () => {
   const port = 20000 + Math.floor(Math.random() * 20000);
-  proc = spawn(BIN, ['--port', String(port)], { stdio: 'ignore' });
+  proc = spawn(BIN, ['--port', String(port)], { stdio: 'ignore', env: Object.assign({}, process.env, { RELAY_UPDATE_URL: 'http://127.0.0.1:9/none' }) });
   base = 'http://127.0.0.1:' + port;
   for (let i = 0; i < 50; i++) { try { await request('GET', '/'); return; } catch (e) { await wait(100); } }
   throw new Error('relay did not start');

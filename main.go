@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const version = "0.0.5"
+const version = "0.0.6"
 
 var logOut io.Writer = os.Stdout
 
@@ -31,6 +31,14 @@ func logf(format string, args ...interface{}) {
 }
 
 type config struct{ host, port string }
+
+// appDir is the folder the program runs from (where settings.txt normally lives too).
+func appDir() string {
+	if exe, err := os.Executable(); err == nil {
+		return filepath.Dir(exe)
+	}
+	return "."
+}
 
 // settings.txt lives next to the program (PORT=8787 / HOST=127.0.0.1). If that folder cannot be
 // written (for example Program Files), the settings are kept in the user's config folder instead.
@@ -157,6 +165,9 @@ func main() {
 	stop := flag.Bool("stop", false, "stop a running relay")
 	setPort := flag.String("set-port", "", "save a new port (1024-65535) to settings.txt")
 	restarted := flag.Bool("restarted", false, "internal: started by the port-change restart")
+	openFolder := flag.Bool("open-folder", false, "open the folder this program runs from")
+	checkUpdate := flag.Bool("check-update", false, "ask GitHub if a newer version exists and print the answer")
+	setUpdates := flag.String("set-updates", "", "on or off: the daily update check (saved to settings.txt)")
 	host := flag.String("host", "", "address to listen on (default 127.0.0.1)")
 	port := flag.String("port", "", "port to listen on (default 8787)")
 	flag.Parse()
@@ -181,6 +192,43 @@ func main() {
 	}
 	if *stop {
 		os.Exit(doStop(cfg))
+	}
+	if *openFolder {
+		if err := openPath(appDir()); err != nil {
+			fmt.Println("Could not open the folder:", err)
+			fmt.Println("It is: " + appDir())
+			os.Exit(1)
+		}
+		fmt.Println("Opened " + appDir())
+		return
+	}
+	if *setUpdates != "" {
+		v := strings.ToLower(*setUpdates)
+		if v != "on" && v != "off" {
+			fmt.Println("Use --set-updates on  or  --set-updates off")
+			os.Exit(2)
+		}
+		if err := writeSetting("UPDATECHECK", v); err != nil {
+			fmt.Println("Could not save the setting:", err)
+			os.Exit(1)
+		}
+		fmt.Println("Update check: " + v + ". Restart the relay for it to take effect.")
+		return
+	}
+	if *checkUpdate {
+		latest, err := fetchLatest()
+		if err != nil {
+			fmt.Println("Could not check for updates:", err)
+			os.Exit(1)
+		}
+		if newerThan(latest, version) {
+			fmt.Println("An update is available: " + latest + " (you have " + version + ").")
+			fmt.Println("Download: " + releasePage)
+			fmt.Println("To update: stop the relay, replace the files with the new download, start it again.")
+		} else {
+			fmt.Println("You have the newest version (" + version + ").")
+		}
+		return
 	}
 
 	initLog()
@@ -210,6 +258,7 @@ func main() {
 			}
 		}
 	}()
+	go r.updateLoop()
 	logf("VoiceStudio OBS Connector Relay %s running on http://%s:%s", version, cfg.host, cfg.port)
 	if cfg.host != "127.0.0.1" && cfg.host != "localhost" {
 		logf("WARNING: listening beyond this PC. Anyone on your network who knows your ID can send speech.")

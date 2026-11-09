@@ -5,9 +5,25 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
 	"syscall"
 )
+
+// openPath shows a folder in the system's file manager.
+func openPath(p string) error {
+	cmd := "xdg-open"
+	if runtime.GOOS == "darwin" {
+		cmd = "open"
+	}
+	c := exec.Command(cmd, p)
+	if err := c.Start(); err != nil {
+		return err
+	}
+	go c.Wait()
+	return nil
+}
 
 func initLog() {}
 

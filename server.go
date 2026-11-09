@@ -217,11 +217,13 @@ type relay struct {
 	quit chan struct{}
 	once sync.Once
 	http *http.Client
+	upd  *updater
 }
 
 func newRelay() *relay {
 	return &relay{
 		hub:  newHub(),
+		upd:  newUpdater(),
 		quit: make(chan struct{}),
 		// No system proxy: VoiceStudio is on this PC or in the same network.
 		http: &http.Client{Timeout: 60 * time.Second, Transport: &http.Transport{Proxy: nil}},
@@ -266,6 +268,24 @@ func (r *relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		cors(w)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		fmt.Fprintf(w, "VoiceStudio OBS Connector Relay %s is running.\nOBS source: /overlay.html?id=YOURID (copy the full URL from the extension settings)\n\nFree and open source software (GPL-3.0). Free to use, share and modify. Inspired by Social Stream Ninja.\n", version)
+
+	case req.Method == http.MethodGet && path == "/info":
+		latest, avail := r.upd.state()
+		writeJSON(w, 200, map[string]interface{}{"ok": true, "version": version, "updateCheck": updatesEnabled(),
+			"latest": latest, "updateAvailable": avail, "downloadUrl": releasePage})
+
+	case req.Method == http.MethodPost && path == "/open-folder":
+		// Opens the folder this program runs from. Same protection as /shutdown: this computer only,
+		// and a custom header that a web page cannot send.
+		if !isLoopback(req.RemoteAddr) || req.Header.Get("X-Relay-Open") != "1" {
+			fail(w, 403, "forbidden")
+			return
+		}
+		if err := openPath(appDir()); err != nil {
+			fail(w, 500, "could not open the folder")
+			return
+		}
+		writeJSON(w, 200, map[string]interface{}{"ok": true, "path": appDir()})
 
 	case req.Method == http.MethodGet && path == "/status":
 		if !idRe.MatchString(id) {
