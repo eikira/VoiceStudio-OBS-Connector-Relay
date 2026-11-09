@@ -1,0 +1,5 @@
+# VoiceStudio OBS Connector Relay settings (restart the relay after changing).
+# PORT: the port the relay listens on. The extension's "Relay address" must match.
+PORT=8787
+# HOST: 127.0.0.1 = only this PC (OBS on the same PC). Use 0.0.0.0 if OBS runs on another PC.
+HOST=127.0.0.1
