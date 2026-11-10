@@ -1,5 +1,10 @@
 # Changelog (VoiceStudio OBS Connector Relay)
 
+## 0.0.7
+- **Two-voice messages:** a request can carry an `intro` clip (for example "Paul says" in its own voice). The OBS page requests both clips, waits until both are ready, then plays intro and message one after the other. If only the intro fails, the message is still read.
+- **Chat lines (`kind: chat`):** when more than `maxQueue` chat lines are waiting, the oldest are dropped. Commands are never dropped.
+- `GET /info` now also reports `protocol: 2`. **Extension 0.1.1 needs this relay (0.0.7 or newer) and refuses to work with an older one.**
+
 ## 0.0.6
 - **Update check:** once a day the relay asks GitHub which version is the newest. Windows: a message at the tray icon and an
   "Update available" menu entry; all systems: a line in the log and a notice in the extension's settings. Nothing is installed

@@ -8,6 +8,7 @@
  *   endpoint  override the VoiceStudio address, e.g. http://192.168.1.20:3900
  *   volume    0 to 1 (default 1)
  *   maxqueue  drop new items when this many are waiting (default 30)
+ *             (chat lines have their own limit, set in the extension: the oldest waiting line goes first)
  *   timeout   seconds before a stuck item is skipped (default 60)
  *   debug     show a status/log panel
  */
@@ -135,12 +136,12 @@
     });
   }
 
-  function speak(item) {
+  // Asks VoiceStudio for one clip and returns its audio. Rejects with a readable message.
+  function fetchClip(item, text, voice, model, speed) {
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs);
-    var body = { model: item.model, input: item.text, voice: item.voice, response_format: item.format };
-    if (typeof item.speed === 'number') body.speed = item.speed;
-    var url = null;
+    var body = { model: model, input: text, voice: voice, response_format: item.format };
+    if (typeof speed === 'number') body.speed = speed;
     return requestSpeech(speechUrl(item), body, ctrl.signal).then(function (res) {
       if (!res.ok) {
         return res.text().then(function (t) {
@@ -157,20 +158,48 @@
     }).then(function (blob) {
       clearTimeout(timer);
       if (!blob.size) throw new Error('VoiceStudio returned empty audio');
-      url = URL.createObjectURL(blob);
-      var audio = new Audio();
-      audio.volume = volume;
-      audio.src = url;
-      return play(audio).then(function () {
-        audio.removeAttribute('src');
-      });
-    }).then(function () {
-      if (url) URL.revokeObjectURL(url);
+      return blob;
     }, function (err) {
       clearTimeout(timer);
-      if (url) URL.revokeObjectURL(url);
       if (err && err.name === 'AbortError') throw new Error('VoiceStudio did not answer in time');
       throw err;
+    });
+  }
+
+  // Plays a list of audio blobs one after the other.
+  function playAll(blobs) {
+    var urls = [];
+    var audios = blobs.map(function (blob) {
+      var url = URL.createObjectURL(blob);
+      urls.push(url);
+      var a = new Audio();
+      a.volume = volume;
+      a.preload = 'auto';
+      a.src = url; // loaded already, so the next clip starts without a gap
+      return a;
+    });
+    function cleanup() { urls.forEach(function (u) { URL.revokeObjectURL(u); }); }
+    var chain = Promise.resolve();
+    audios.forEach(function (a) {
+      chain = chain.then(function () { return play(a).then(function () { a.removeAttribute('src'); }); });
+    });
+    return chain.then(cleanup, function (err) { cleanup(); throw err; });
+  }
+
+  // A message with an intro ("Paul says") needs two clips in two voices. Both are requested at the
+  // same time and playing only starts when both have arrived, so there is no pause in the middle.
+  // If only the intro fails, the message is still read.
+  function speak(item) {
+    var msgP = fetchClip(item, item.text, item.voice, item.model, item.speed);
+    if (!item.intro) return msgP.then(function (blob) { return playAll([blob]); });
+    var it = item.intro;
+    var introP = fetchClip(item, it.text, it.voice, it.model || item.model, typeof it.speed === 'number' ? it.speed : item.speed)
+      .catch(function (err) {
+        log('Intro failed, reading the message only: ' + (err && err.message ? err.message : err), true);
+        return null;
+      });
+    return Promise.all([introP, msgP]).then(function (blobs) {
+      return playAll(blobs[0] ? [blobs[0], blobs[1]] : [blobs[1]]);
     });
   }
 
@@ -180,7 +209,7 @@
     busy = true;
     var item = queue.shift();
     updateStats();
-    log('Speaking !' + (item.command || '?') + ' (' + item.voice + ') from ' + (item.user || 'viewer'));
+    log((item.kind === 'chat' ? 'Reading chat line' : 'Speaking !' + (item.command || '?')) + ' (' + item.voice + (item.intro ? ' + intro ' + item.intro.voice : '') + ') from ' + (item.user || 'viewer'));
     speak(item).then(function () {
       played++;
     }, function (err) {
@@ -209,6 +238,17 @@
 
   function enqueue(item) {
     if (!item || typeof item.text !== 'string' || typeof item.voice !== 'string' || typeof item.endpoint !== 'string') return;
+    if (item.kind === 'chat' && item.maxQueue > 0) {
+      // Chat lines pile up fast: keep only the newest few waiting. Commands are never dropped this way.
+      var waiting = queue.filter(function (x) { return x.kind === 'chat'; }).length;
+      while (waiting >= item.maxQueue) {
+        for (var i = 0; i < queue.length; i++) {
+          if (queue[i].kind === 'chat') { queue.splice(i, 1); break; }
+        }
+        waiting--;
+        log('Too many chat lines waiting, dropped the oldest', true);
+      }
+    }
     if (queue.length >= maxQueue) {
       log('Queue full, dropped a message', true);
       return;

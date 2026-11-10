@@ -43,7 +43,7 @@ Get the zip for your system from the **[latest release](https://github.com/eikir
 | macOS | `VoiceStudio-OBS-Connector-Relay-<version>-macOS.zip` |
 | Linux | `VoiceStudio-OBS-Connector-Relay-<version>-Linux.zip` |
 
-Unzip it, then:
+Unzip it. You get a folder named `VoiceStudio-OBS-Connector-Relay` (the same name for every version; put it somewhere permanent). Then:
 
 - **Windows:** double-click `VoiceStudio-OBS-Connector-Relay.exe`. Stop it with `Stop Relay.vbs` or
   the tray icon menu. Windows SmartScreen may warn about an unsigned program: *More info -> Run anyway*.
@@ -59,7 +59,7 @@ The relay tells you when a new version is out, but **never installs anything by 
 
 1. Stop the relay (Windows: tray icon -> *Stop relay and exit*; macOS/Linux: the stop script).
 2. Download the new zip from the [latest release](https://github.com/eikira/VoiceStudio-OBS-Connector-Relay/releases/latest) and unzip it.
-3. Copy the new files over the old ones in the folder where the relay lives. **Keep your own `settings.txt`** if you changed the port.
+3. Copy **everything inside** the unzipped folder (not the folder itself) over the old files in the folder where the relay lives. **Keep your own `settings.txt`** if you changed the port.
 4. Start the relay again.
 
 **Where is the relay's folder?** Windows: tray icon -> *Open relay folder*. Any system: in the extension's
@@ -101,10 +101,10 @@ environment variables (`PORT`, `HOST`) beats the file.
 |-------|-----|
 | `GET /overlay.html?id=ID`, `/overlay.js` | the OBS browser source page (embedded in the program) |
 | `GET /events?id=ID` | Server-Sent Events: what the OBS page listens to |
-| `POST /send?id=ID` | the extension posts a speech request (validated, then sent to every OBS page with that ID) |
+| `POST /send?id=ID` | the extension posts a speech request (validated, then sent to every OBS page with that ID). Optional fields (0.0.7): `intro` (a second clip `{text, voice, model, speed}` that is played first), `kind` (`chat` for read-all lines) and `maxQueue` (1-100, waiting chat lines before the oldest are dropped). |
 | `GET /status?id=ID` | `{ok, listeners}` |
 | `POST /tts?id=ID` | asks VoiceStudio for audio on behalf of the OBS page or the extension's Test buttons. Only `.../audio/speech` URLs are allowed. |
-| `GET /info` | `{ok, version, updateCheck, latest, updateAvailable, downloadUrl}`: the version and what the update check found |
+| `GET /info` | `{ok, version, protocol, updateCheck, latest, updateAvailable, downloadUrl}`: the version, the protocol number (2 since 0.0.7; extension 0.1.1+ needs 2) and what the update check found |
 | `POST /open-folder` | opens the relay's own folder in the file manager. Only from this computer and only with the header `X-Relay-Open: 1`. |
 | `POST /shutdown` | closes the relay. Only from this computer and only with the header `X-Relay-Stop: 1`. |
 

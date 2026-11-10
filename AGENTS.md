@@ -31,9 +31,9 @@ Extension --POST /send?id=ID--> Relay --SSE /events?id=ID--> OBS Browser Source 
 | `tray_windows.go` | Windows tray icon, menu (status page, open folder, log, change port, update entries, autostart), "Change port" window, autostart registry key. Raw Win32 calls through `syscall`, no libraries. |
 | `tray_other.go` | macOS and Linux: no tray, runs in the terminal; `openPath` uses `open` / `xdg-open`. |
 | `relay.ico`, `rsrc_windows_*.syso` | Icon and Windows resources. `tools/mkico.py` and `tools/mksyso.py` regenerate them. |
-| `build.sh` | Cross-compiles all targets and makes the zips (`VoiceStudio-OBS-Connector-Relay-<version>-<OS>.zip`). |
+| `build.sh` | Cross-compiles all targets and makes the zips (`VoiceStudio-OBS-Connector-Relay-<version>-<OS>.zip`). The folder inside each zip is always `VoiceStudio-OBS-Connector-Relay`, without version or OS, so an update can replace it. |
 | `packaging/` | Per-OS files that go into the zips (start/stop/change-port scripts, README.txt). |
-| `tests/relay.test.js`, `tests/update.test.js` | Tests that start the compiled binary and talk to it over HTTP. The update tests use a fake GitHub server and a fake file manager. |
+| `tests/relay.test.js`, `tests/update.test.js`, `tests/protocol2.test.js` | Tests that start the compiled binary and talk to it over HTTP. The update tests use a fake GitHub server and a fake file manager. |
 
 ## Design rules (keep these)
 
@@ -49,6 +49,8 @@ Extension --POST /send?id=ID--> Relay --SSE /events?id=ID--> OBS Browser Source 
 - The update check is on by default, can be switched off (`UPDATECHECK=off`, tray menu, `--set-updates`), and must stay quiet when GitHub is unreachable.
 - `RELAY_UPDATE_URL` (environment variable) points the check at a fake server. It exists for the automatic tests only.
 - `/open-folder` and `/shutdown` must stay protected: this computer only plus a custom header. Never add those headers to the CORS allow-list.
+- **Protocol version:** `/info` reports `protocol` (`protocolVersion` in `server.go`, 2 since 0.0.7). Extension 0.1.1+ refuses to speak unless it is >= 2. Raise it when the extension needs something new from the relay; keep old fields working.
+- `/send` payload extras (0.0.7): `intro`, `kind` (only `chat`), `maxQueue` (1-100, only for chat). `validate()` rejects a malformed `intro` with 400. The overlay requests both clips in parallel, waits for both, plays intro then message; chat-kind items beyond `maxQueue` drop the oldest waiting chat item.
 - Keep the HTTP interface compatible: the extension and overlay depend on `/send`, `/events`, `/status`, `/tts` (and `/info`, which the extension reads).
 
 ## Settings

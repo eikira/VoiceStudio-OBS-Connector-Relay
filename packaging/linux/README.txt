@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.6 - Linux (x64 and ARM64)
+VoiceStudio OBS Connector Relay 0.0.7 - Linux (x64 and ARM64)
 =============================================================
 
 What it is: a small background program that connects the VoiceStudio OBS Connector
@@ -15,8 +15,8 @@ If the scripts are not executable:  chmod +x *.sh
 UPDATES The relay asks GitHub once a day if a newer version exists and writes it to the log.
         The extension settings also show it. NOTHING is installed automatically.
         ./check-update.sh     asks right now
-        To update: ./stop.sh, then copy the new files over the old ones (keep your own
-        settings.txt if you changed the port), then ./start.sh
+        To update: ./stop.sh, then copy everything INSIDE the unzipped folder (not the
+        folder itself) over the old ones (keep your own settings.txt if you changed the port), then ./start.sh
         Switch the daily check off: put UPDATECHECK=off in settings.txt.
 FOLDER  The extension settings have an "Open relay folder" button (relay must be running).
 

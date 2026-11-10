@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.6 - Windows 10 / 11
+VoiceStudio OBS Connector Relay 0.0.7 - Windows 10 / 11
 =======================================================
 
 What it is: a small background program that connects the VoiceStudio OBS Connector
@@ -20,7 +20,8 @@ UPDATES
   icon and the menu gets an entry "Update available: x.y.z - open download page".
   NOTHING is installed automatically. To update:
    1. Right-click the icon -> "Stop relay and exit".
-   2. Download the new zip, unzip it, and copy the files over the old ones in this folder.
+   2. Download the new zip, unzip it, and copy everything INSIDE the unzipped folder (not the folder itself)
+      over the old files in this folder.
       (Keep your own settings.txt if you changed the port.)
    3. Start VoiceStudio-OBS-Connector-Relay.exe again.
   "Open relay folder" in the menu shows you where the program is (the extension settings have

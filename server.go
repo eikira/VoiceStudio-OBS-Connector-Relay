@@ -160,7 +160,24 @@ type payload struct {
 	Platform string   `json:"platform"`
 	TS       int64    `json:"ts"`
 	Speed    *float64 `json:"speed,omitempty"`
+	// Optional extras (protocol 2). Intro is a short first clip in its own voice ("Paul says"),
+	// played before the message. Kind "chat" marks a line read from the chat (not a command), and
+	// MaxQueue is how many such lines may wait; the oldest waiting chat line is dropped first.
+	Intro    *intro `json:"intro,omitempty"`
+	Kind     string `json:"kind,omitempty"`
+	MaxQueue int    `json:"maxQueue,omitempty"`
 }
+
+type intro struct {
+	Text  string   `json:"text"`
+	Voice string   `json:"voice"`
+	Model string   `json:"model,omitempty"`
+	Speed *float64 `json:"speed,omitempty"`
+}
+
+// protocolVersion tells the extension which features this relay understands. The extension
+// needs 2 or higher (intro clip, chat lines).
+const protocolVersion = 2
 
 func validate(p map[string]interface{}) *payload {
 	if p == nil {
@@ -195,6 +212,31 @@ func validate(p map[string]interface{}) *payload {
 	}
 	if sp, ok := p["speed"].(float64); ok && sp >= 0.1 && sp <= 4 {
 		out.Speed = &sp
+	}
+	if raw, present := p["intro"]; present && raw != nil {
+		m, isMap := raw.(map[string]interface{})
+		if !isMap {
+			return nil
+		}
+		it, ok1 := str(m["text"], 300)
+		iv, ok2 := str(m["voice"], 200)
+		if !ok1 || !ok2 {
+			return nil
+		}
+		in := &intro{Text: it, Voice: iv}
+		if im, ok := str(m["model"], 100); ok {
+			in.Model = im
+		}
+		if sp, ok := m["speed"].(float64); ok && sp >= 0.1 && sp <= 4 {
+			in.Speed = &sp
+		}
+		out.Intro = in
+	}
+	if k, ok := p["kind"].(string); ok && k == "chat" {
+		out.Kind = "chat"
+		if mq, ok := p["maxQueue"].(float64); ok && mq >= 1 && mq <= 100 {
+			out.MaxQueue = int(mq)
+		}
 	}
 	return out
 }
@@ -271,7 +313,7 @@ func (r *relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	case req.Method == http.MethodGet && path == "/info":
 		latest, avail := r.upd.state()
-		writeJSON(w, 200, map[string]interface{}{"ok": true, "version": version, "updateCheck": updatesEnabled(),
+		writeJSON(w, 200, map[string]interface{}{"ok": true, "version": version, "protocol": protocolVersion, "updateCheck": updatesEnabled(),
 			"latest": latest, "updateAvailable": avail, "downloadUrl": releasePage})
 
 	case req.Method == http.MethodPost && path == "/open-folder":
