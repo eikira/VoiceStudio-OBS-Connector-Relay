@@ -1,4 +1,4 @@
-// VoiceStudio OBS Connector Relay: connects the VoiceStudio OBS Connector Chrome extension to OBS.
+// VoiceStudio OBS Connector Relay: connects the VoiceStudio+SimpleVoice OBS Connector Chrome extension to OBS.
 // One small program, no install. See README.
 //
 // Copyright (C) 2026 eikira.
@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const version = "0.0.7"
+const version = "0.0.8"
 
 var logOut io.Writer = os.Stdout
 

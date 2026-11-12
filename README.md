@@ -2,12 +2,12 @@
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
-A small background program that connects the **[VoiceStudio OBS Connector](https://github.com/eikira/VoiceStudio-OBS-Connector)** Chrome
+A small background program that connects the **[VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector)** Chrome
 extension to **OBS Studio**. It is the second half of a pair: the extension reads your stream chat,
 this relay carries the speech request to OBS, where an invisible Browser Source plays it.
 
 > **You need both.** This relay does nothing on its own. Get the Chrome extension here:
-> **[VoiceStudio-OBS-Connector](https://github.com/eikira/VoiceStudio-OBS-Connector)**
+> **[VoiceStudio-SimpleVoice-OBS-Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector)**
 
 ## What it does
 
@@ -29,7 +29,7 @@ this relay carries the speech request to OBS, where an invisible Browser Source 
 | **System** | Windows 10 / 11, macOS (Intel or Apple Silicon), or Linux (x64 or ARM64) |
 | **OBS Studio** | with a Browser Source (included in OBS) |
 | **VoiceStudio** | running on the same computer (or in your network) with its OpenAI-compatible speech API (default `http://127.0.0.1:3900`) |
-| **Chrome extension** | [VoiceStudio OBS Connector](https://github.com/eikira/VoiceStudio-OBS-Connector) (Chrome or a Chromium-based browser) |
+| **Chrome extension** | [VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector) (Chrome or a Chromium-based browser) |
 
 No Node.js, Go or any other install is needed.
 

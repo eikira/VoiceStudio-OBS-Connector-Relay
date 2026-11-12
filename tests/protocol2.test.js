@@ -41,7 +41,7 @@ test.after(() => proc && proc.kill());
 test('/info tells the protocol version (the extension needs 2 or higher)', async () => {
   const r = await call('GET', '/info');
   assert.strictEqual(r.json.protocol, 2);
-  assert.strictEqual(r.json.version, '0.0.7');
+  assert.strictEqual(r.json.version, '0.0.8');
 });
 
 test('intro, kind and maxQueue are passed on; speed and model of the intro are kept', async () => {

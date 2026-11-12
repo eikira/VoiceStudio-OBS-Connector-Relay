@@ -1,7 +1,7 @@
-VoiceStudio OBS Connector Relay 0.0.7 - macOS (Intel and Apple Silicon)
+VoiceStudio OBS Connector Relay 0.0.8 - macOS (Intel and Apple Silicon)
 =======================================================================
 
-What it is: a small background program that connects the VoiceStudio OBS Connector
+What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector
 Chrome extension to OBS. Nothing to install.
 
 START   Double-click "Start Relay.command". It runs in the background; close the window.
@@ -27,7 +27,7 @@ settings.txt: PORT=8787, HOST=127.0.0.1 (use 0.0.0.0 if OBS runs on another comp
 Log: ~/Library/Application Support/VoiceStudioOBSRelay/relay.log
 There is no menu-bar icon on macOS.
 
-Needs the VoiceStudio OBS Connector Chrome extension: https://github.com/eikira/VoiceStudio-OBS-Connector
+Needs the VoiceStudio+SimpleVoice OBS Connector Chrome extension: https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector
 Free and open source (GPL-3.0), copyright eikira. Free to use, share and modify. No warranty.
 Inspired by Social Stream Ninja. Not affiliated with VoiceStudio, OBS, Twitch, YouTube,
 Rumble or Kick. See LICENSE and THIRD-PARTY-NOTICES.txt.

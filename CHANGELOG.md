@@ -1,5 +1,8 @@
 # Changelog (VoiceStudio OBS Connector Relay)
 
+## 0.0.8
+- Names and links only, nothing else changed: the Chrome extension is now called **VoiceStudio+SimpleVoice OBS Connector** (it also works with SimpleVoice OBS) and lives at github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector. This relay is still the one for VoiceStudio, and its own name and address are unchanged. Works with extension 0.1.1 and 0.2.0.
+
 ## 0.0.7
 - **Two-voice messages:** a request can carry an `intro` clip (for example "Paul says" in its own voice). The OBS page requests both clips, waits until both are ready, then plays intro and message one after the other. If only the intro fails, the message is still read.
 - **Chat lines (`kind: chat`):** when more than `maxQueue` chat lines are waiting, the oldest are dropped. Commands are never dropped.

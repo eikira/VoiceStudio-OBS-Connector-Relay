@@ -7,7 +7,7 @@ User-facing docs are in README.md. Version history is in CHANGELOG.md.
 
 A small native program written in Go (standard library only, one binary, no installer, no runtime needed).
 It connects the Chrome extension to OBS and runs on Windows 10/11 (tray icon, no window), macOS and Linux.
-The extension is a separate project: https://github.com/eikira/VoiceStudio-OBS-Connector
+The extension is a separate project: https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector
 
 ```
 Extension --POST /send?id=ID--> Relay --SSE /events?id=ID--> OBS Browser Source (overlay.html)
