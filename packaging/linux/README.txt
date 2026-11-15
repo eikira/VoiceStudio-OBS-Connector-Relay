@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.8 - Linux (x64 and ARM64)
+VoiceStudio OBS Connector Relay 0.1.1 - Linux (x64 and ARM64)
 =============================================================
 
 What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector
@@ -12,6 +12,27 @@ AUTO    ./autostart-on.sh     starts the relay at login (systemd user service)
         ./autostart-off.sh    removes it
 If the scripts are not executable:  chmod +x *.sh
 
+VOICESTUDIO ADDRESS (where this relay finds VoiceStudio)
+  The extension and OBS talk only to this relay. The relay passes the voices, the models and the speech
+  on to VoiceStudio. Default http://127.0.0.1:3900 (VoiceStudio on this computer). If VoiceStudio runs on
+  another computer, enter its address on the page of the listening address, section "VoiceStudio address"
+  (./network.sh opens the page), or run  --set-voicestudio http://ADDRESS:3900 .
+  VoiceStudio itself must accept connections from the network in that case.
+
+LISTENING ADDRESS (for OBS or the extension on another computer)
+  By default the relay answers only on this PC. To use it from another computer, choose the
+  address of your real home or office network (NOT a VPN adapter):
+  Run ./network.sh (opens the page in your browser; the relay must be running).
+  Without a browser: --list-addresses shows the addresses, --set-host ADDRESS saves one.
+  The page lists the addresses of this computer with the name of each adapter. VPN and virtual
+  adapters are marked. After saving, the relay restarts. Then set "Relay address" in the extension
+  (on the other computer) to the address shown on the page, for example http://192.168.1.20:8787,
+  and copy the new OBS Browser Source URL.
+  IMPORTANT: the extension's "Detect" button only looks on one port. If you changed the port, set
+  the same port in the extension, or Detect will not find the relay.
+  There is no password: anyone on that network who knows your OBS ID can send speech. Use only a
+  network you trust.
+
 UPDATES The relay asks GitHub once a day if a newer version exists and writes it to the log.
         The extension settings also show it. NOTHING is installed automatically.
         ./check-update.sh     asks right now
@@ -20,7 +41,7 @@ UPDATES The relay asks GitHub once a day if a newer version exists and writes it
         Switch the daily check off: put UPDATECHECK=off in settings.txt.
 FOLDER  The extension settings have an "Open relay folder" button (relay must be running).
 
-settings.txt: PORT=8787, HOST=127.0.0.1 (use 0.0.0.0 if OBS runs on another computer),
+settings.txt: PORT=8787, HOST=127.0.0.1 (see LISTENING ADDRESS above),
               UPDATECHECK=on (or off).
 Log: ~/.local/state/voicestudio-obs-relay/relay.log
 

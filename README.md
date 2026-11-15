@@ -2,23 +2,30 @@
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
-A small background program that connects the **[VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector)** Chrome
-extension to **OBS Studio**. It is the second half of a pair: the extension reads your stream chat,
+A small background program that connects the **[VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector)** browser
+extension (Chrome and Firefox) to **OBS Studio**. It is the second half of a pair: the extension reads your stream chat,
 this relay carries the speech request to OBS, where an invisible Browser Source plays it.
 
-> **You need both.** This relay does nothing on its own. Get the Chrome extension here:
+> **You need both.** This relay does nothing on its own. Get the browser extension here:
 > **[VoiceStudio-SimpleVoice-OBS-Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector)**
 
 ## What it does
 
-    Chrome extension  --->  this relay  --->  OBS Browser Source  --->  VoiceStudio (your voices)
+    browser extension  --->  this relay  --->  OBS Browser Source
     (reads !commands         (127.0.0.1:8787)    (plays the audio)
-     from your chat)
+     from your chat)              |                    |
+                                  +---- VoiceStudio ---+   (voices, models and speech are passed
+                                        (your voices)       through the relay)
 
 - Gives every user an OBS Browser Source URL with their own unique ID.
 - Plays requests one after another, in order, through OBS.
-- Asks VoiceStudio for the audio itself when VoiceStudio refuses requests that come straight from
-  a web page.
+- **Passes VoiceStudio through.** The extension and the OBS page only talk to the relay; the relay asks
+  VoiceStudio for the voice list, the model list and the speech (VoiceStudio refuses requests that come
+  straight from a web page). Where VoiceStudio is, is a setting of the relay, so VoiceStudio can run on
+  another computer without a second address anywhere.
+- **Listening address.** By default only this computer can reach the relay. For OBS or the extension on
+  another computer you choose your real network address on a page of the relay (adapter names shown,
+  VPN adapters flagged). See "Another computer" below.
 - One file, nothing to install. Runs silently in the background (Windows: notification-area icon
   with a Stop button).
 
@@ -28,8 +35,8 @@ this relay carries the speech request to OBS, where an invisible Browser Source 
 |---|---|
 | **System** | Windows 10 / 11, macOS (Intel or Apple Silicon), or Linux (x64 or ARM64) |
 | **OBS Studio** | with a Browser Source (included in OBS) |
-| **VoiceStudio** | running on the same computer (or in your network) with its OpenAI-compatible speech API (default `http://127.0.0.1:3900`) |
-| **Chrome extension** | [VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector) (Chrome or a Chromium-based browser) |
+| **VoiceStudio** | running on the same computer as the relay, or on another one that the relay can reach (default `http://127.0.0.1:3900`; set on the relay, see below) |
+| **Browser extension** | [VoiceStudio+SimpleVoice OBS Connector](https://github.com/eikira/VoiceStudio-SimpleVoice-OBS-Connector) 0.3.0 or newer (Chrome, a Chromium-based browser, or Firefox) |
 
 No Node.js, Go or any other install is needed.
 
@@ -52,6 +59,32 @@ Unzip it. You get a folder named `VoiceStudio-OBS-Connector-Relay` (the same nam
 
 Each zip has a short README with the details (changing the port, starting at login).
 The default port is **8787**; use `http://127.0.0.1:8787` as "Relay address" in the extension.
+
+## Another computer: listening address, VoiceStudio address, firewall
+
+**Listening address.** The relay answers on `127.0.0.1` (this computer only) until you choose otherwise. To reach it from another
+computer in your network, open the page where you choose the address: Windows tray menu *Listening address (network)...*,
+macOS `Network Address.command`, Linux `network.sh`, or `--open-network`. The page (it opens only on this computer):
+
+- lists the addresses of this computer with the **adapter name** beside each one;
+- offers private ranges only (192.168.x.x, 10.x.x.x, 172.16-31.x.x). Adapters that look like a VPN or a virtual adapter and the
+  100.64.x.x range are marked in red. Other addresses sit in a separate red-warned section and need a confirmation;
+- shows two notices: **choose your real home or office network, not a VPN adapter**, and **the extension's Detect looks on one
+  port only, so the port must match**;
+- shows the address to enter in the extension (*Relay address*), with a Copy button.
+
+Saving restarts the relay. Without a browser: `--list-addresses`, then `--set-host ADDRESS`. There is no password: anyone on that
+network who knows your OBS ID can send speech, so use it only on a network you trust.
+
+**Firewall.** Right after the relay starts on a network address it makes one short connection attempt from that address to the
+gateway of that network, so that Windows Firewall, simplewall or similar can ask about this program. Allow it for your private
+network. The answer to the attempt does not matter and nothing is sent to the internet. To test from the other computer, use
+*Detect relay* in the extension.
+
+**VoiceStudio address.** The relay looks for VoiceStudio at `http://127.0.0.1:3900` (VoiceStudio on the same computer). If VoiceStudio
+runs on another computer, enter its address on the same page (section *VoiceStudio address*, with a check), in the tray menu
+*VoiceStudio address...*, with `--set-voicestudio http://ADDRESS:3900`, or as `VOICESTUDIO=` in `settings.txt`. VoiceStudio itself
+must accept connections from the network in that case.
 
 ## Updating
 
@@ -79,12 +112,17 @@ One Go program using only the standard library (no third-party code). The Window
 icon is made with direct Win32 calls. The icon on the .exe comes from `rsrc_windows_*.syso`
 (regenerate with `python3 tools/mkico.py && python3 tools/mksyso.py`, needs `pip install pillow`).
 
-Tests (need Node 18+ only to run them): `go build -o relay-test . && node --test`
+Tests: `go vet ./... && go test -race ./...` (no extras), and with Node 18+: `go build -o relay-test . && node --test tests/*.test.js`
 
 ## Command line
 
     --port N        listen on port N (default 8787)
     --host H        listen address (default 127.0.0.1 = this computer only)
+    --list-addresses     list the addresses of this computer with their adapters
+    --set-host ADDRESS   save the listening address (an address from --list-addresses, or 127.0.0.1)
+    --yes-not-private    with --set-host: confirm an address that is not in a private range
+    --open-network       open the page where the listening address and the VoiceStudio address are set
+    --set-voicestudio URL  save where this relay finds VoiceStudio (default http://127.0.0.1:3900)
     --set-port N    save the port to settings.txt (1024-65535)
     --stop          close a running relay (this computer only)
     --open-folder   open the folder the program runs from
@@ -92,8 +130,8 @@ Tests (need Node 18+ only to run them): `go build -o relay-test . && node --test
     --set-updates on|off   switch the daily update check on or off (saved to settings.txt)
     --version
 
-Settings live in `settings.txt` next to the program (`PORT`, `HOST`, `UPDATECHECK`). Command line beats
-environment variables (`PORT`, `HOST`) beats the file.
+Settings live in `settings.txt` next to the program (`PORT`, `HOST`, `VOICESTUDIO`, `UPDATECHECK`). Command line beats
+environment variables (`PORT`, `HOST`, `VOICESTUDIO`) beats the file.
 
 ## HTTP interface
 
@@ -103,13 +141,15 @@ environment variables (`PORT`, `HOST`) beats the file.
 | `GET /events?id=ID` | Server-Sent Events: what the OBS page listens to |
 | `POST /send?id=ID` | the extension posts a speech request (validated, then sent to every OBS page with that ID). Optional fields (0.0.7): `intro` (a second clip `{text, voice, model, speed}` that is played first), `kind` (`chat` for read-all lines) and `maxQueue` (1-100, waiting chat lines before the oldest are dropped). |
 | `GET /status?id=ID` | `{ok, listeners}` |
-| `POST /tts?id=ID` | asks VoiceStudio for audio on behalf of the OBS page or the extension's Test buttons. Only `.../audio/speech` URLs are allowed. |
-| `GET /info` | `{ok, version, protocol, updateCheck, latest, updateAvailable, downloadUrl}`: the version, the protocol number (2 since 0.0.7; extension 0.1.1+ needs 2) and what the update check found |
+| `GET /vs/health`, `/vs/v1/audio/voices`, `/vs/v1/models`; `POST /vs/v1/audio/speech?id=ID` | passed through to VoiceStudio at the address set in the relay (`VOICESTUDIO`). Nothing else under `/vs/` is passed. |
+| `POST /tts?id=ID` | older way: asks the VoiceStudio address given in the request for audio (only `.../audio/speech` URLs). Kept for older extensions. |
+| `GET /info` | `{ok, name, version, protocol, listening, adapter, voicestudio, updateCheck, latest, updateAvailable, downloadUrl}`: the program's name and version, the protocol number (2 since 0.0.7; extension 0.1.1+ needs 2), where it listens (and the adapter), where it looks for VoiceStudio, and what the update check found |
+| `GET /network`, `GET /api/network`, `POST /api/network/host`, `GET/POST /api/voicestudio` | the page and calls for the listening address and the VoiceStudio address. This computer only (it counts the PC's own addresses too); the POSTs also need the header `X-Relay-Open: 1`. |
 | `POST /open-folder` | opens the relay's own folder in the file manager. Only from this computer and only with the header `X-Relay-Open: 1`. |
 | `POST /shutdown` | closes the relay. Only from this computer and only with the header `X-Relay-Stop: 1`. |
 
 The ID is the secret: 8-64 characters `[A-Za-z0-9_-]`, generated by the extension. The relay listens on
-`127.0.0.1` by default; with `HOST=0.0.0.0` anyone on the network who knows an ID can send speech.
+`127.0.0.1` by default. To use it from another computer, choose the address of your real home or office network (not a VPN adapter) on the `/network` page (tray menu, `Network Address.command` or `network.sh`). Then anyone on that network who knows an ID can send speech. `HOST=0.0.0.0` (all adapters) still works but is not recommended.
 
 ## Support the project
 
@@ -123,7 +163,7 @@ Donations are optional and do not unlock anything. Every feature stays free for 
 
 ## Privacy
 
-The relay only talks to your own computer (or your network) and to your VoiceStudio. The one exception is the
+The relay only talks to your own computer (or your network), to your VoiceStudio and, once when it starts on a network address, to the gateway of that network (the firewall connection attempt, see above). The one exception is the
 update check: once a day it asks `api.github.com` which release is the newest (a public page). Nothing about you,
 your settings or your chat is sent. GitHub sees your IP address, like any website you visit. Switch it off with
 `UPDATECHECK=off` in `settings.txt` or in the tray menu.

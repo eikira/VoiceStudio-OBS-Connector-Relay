@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -274,14 +273,8 @@ func newRelay() *relay {
 
 func (r *relay) requestQuit() { r.once.Do(func() { close(r.quit) }) }
 
-func isLoopback(remote string) bool {
-	host, _, err := net.SplitHostPort(remote)
-	if err != nil {
-		return false
-	}
-	ip := net.ParseIP(host)
-	return ip != nil && ip.IsLoopback()
-}
+// isLoopback: the request comes from this computer (see isLocalClient in network.go).
+func isLoopback(remote string) bool { return isLocalClient(remote) }
 
 func (r *relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get("id")
@@ -290,6 +283,13 @@ func (r *relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodOptions {
 		cors(w)
 		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	if r.handleNetwork(w, req, path) {
+		return
+	}
+	if r.handleVS(w, req, path, id) {
 		return
 	}
 
@@ -309,11 +309,11 @@ func (r *relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case req.Method == http.MethodGet && path == "/":
 		cors(w)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintf(w, "VoiceStudio OBS Connector Relay %s is running.\nOBS source: /overlay.html?id=YOURID (copy the full URL from the extension settings)\n\nFree and open source software (GPL-3.0). Free to use, share and modify. Inspired by Social Stream Ninja.\n", version)
+		fmt.Fprintf(w, "VoiceStudio OBS Connector Relay %s is running.\nOBS source: /overlay.html?id=YOURID (copy the full URL from the extension settings)\nListening address (this PC only): /network\n\nFree and open source software (GPL-3.0). Free to use, share and modify. Inspired by Social Stream Ninja.\n", version)
 
 	case req.Method == http.MethodGet && path == "/info":
 		latest, avail := r.upd.state()
-		writeJSON(w, 200, map[string]interface{}{"ok": true, "version": version, "protocol": protocolVersion, "updateCheck": updatesEnabled(),
+		writeJSON(w, 200, map[string]interface{}{"ok": true, "name": "VoiceStudio OBS Connector Relay", "listening": listenHost(), "adapter": listenAdapter(), "voicestudio": getVoiceStudio(), "version": version, "protocol": protocolVersion, "updateCheck": updatesEnabled(),
 			"latest": latest, "updateAvailable": avail, "downloadUrl": releasePage})
 
 	case req.Method == http.MethodPost && path == "/open-folder":
@@ -467,20 +467,7 @@ func (r *relay) proxy(w http.ResponseWriter, req *http.Request, id string) {
 	up.Header.Set("Content-Type", "application/json")
 	resp, err := r.http.Do(up)
 	if err != nil {
-		why := err.Error()
-		if ne, ok := err.(*url.Error); ok {
-			why = ne.Err.Error()
-		}
-		low := strings.ToLower(why)
-		switch {
-		case strings.Contains(low, "refused"):
-			why = "ECONNREFUSED"
-		case strings.Contains(low, "no such host") || strings.Contains(low, "no address associated"):
-			why = "ENOTFOUND"
-		case strings.Contains(low, "deadline exceeded") || strings.Contains(low, "timeout") || strings.Contains(low, "timed out"):
-			why = "ETIMEDOUT"
-		}
-		msg := "Could not reach VoiceStudio at " + target.Host + " (" + why + ")"
+		msg := "Could not reach VoiceStudio at " + target.Host + " (" + describeErr(err) + ")"
 		logf("%s", msg)
 		fail(w, 502, msg)
 		return

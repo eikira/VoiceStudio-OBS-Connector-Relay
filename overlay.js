@@ -64,7 +64,12 @@
     while (el.log.children.length > 40) el.log.removeChild(el.log.lastChild);
   }
 
+  // 0.1.0 and newer extensions send the speech request through this relay (it knows where VoiceStudio is).
+  var VIA_RELAY = /\/vs\/v1\/audio\/speech$/;
+  function viaRelayUrl() { return relay + '/vs/v1/audio/speech?id=' + encodeURIComponent(id); }
+
   function speechUrl(item) {
+    if (VIA_RELAY.test(item.endpoint)) return viaRelayUrl();
     if (!endpointOverride) return item.endpoint;
     return /\/speech$/.test(endpointOverride) ? endpointOverride : endpointOverride + '/v1/audio/speech';
   }
@@ -109,6 +114,10 @@
         body: JSON.stringify({ endpoint: target, body: body }),
         signal: signal
       });
+    }
+    if (target === viaRelayUrl()) {
+      // the relay itself passes it to VoiceStudio: no second way to try
+      return fetch(target, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: signal });
     }
     if (useProxy) return viaRelay();
     function fallback(reason) {

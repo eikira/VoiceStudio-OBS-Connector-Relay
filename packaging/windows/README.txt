@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.0.8 - Windows 10 / 11
+VoiceStudio OBS Connector Relay 0.1.1 - Windows 10 / 11
 =======================================================
 
 What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector
@@ -11,7 +11,7 @@ START   Double-click  VoiceStudio-OBS-Connector-Relay.exe
         drag it out to keep it visible.
 STOP    Double-click "Stop Relay.vbs", or right-click the tray icon -> "Stop relay and exit".
 
-Tray icon menu: Open status page, Open relay folder, Show log, Change port...,
+Tray icon menu: Open status page, Open relay folder, Show log, Change port..., Listening address (network)...,
 Check for updates daily, Check for updates now, Start with Windows, Stop relay and exit.
 Double-click the icon to open the status page.
 
@@ -26,6 +26,26 @@ UPDATES
    3. Start VoiceStudio-OBS-Connector-Relay.exe again.
   "Open relay folder" in the menu shows you where the program is (the extension settings have
   the same button). Switch the daily check off in the menu or with UPDATECHECK=off in settings.txt.
+
+VOICESTUDIO ADDRESS (where this relay finds VoiceStudio)
+  The extension and OBS talk only to this relay. The relay passes the voices, the models and the speech
+  on to VoiceStudio. Default http://127.0.0.1:3900 (VoiceStudio on this computer). If VoiceStudio runs on
+  another computer, enter its address on the page of the listening address, section "VoiceStudio address"
+  (Windows: tray menu "VoiceStudio address..."), or run  --set-voicestudio http://ADDRESS:3900 .
+  VoiceStudio itself must accept connections from the network in that case.
+
+LISTENING ADDRESS (for OBS or the extension on another computer)
+  By default the relay answers only on this PC. To use it from another computer, choose the
+  address of your real home or office network (NOT a VPN adapter):
+  Right-click the tray icon -> "Listening address (network)...". The page opens in your browser.
+  The page lists the addresses of this computer with the name of each adapter. VPN and virtual
+  adapters are marked. After saving, the relay restarts. Then set "Relay address" in the extension
+  (on the other computer) to the address shown on the page, for example http://192.168.1.20:8787,
+  and copy the new OBS Browser Source URL.
+  IMPORTANT: the extension's "Detect" button only looks on one port. If you changed the port, set
+  the same port in the extension, or Detect will not find the relay.
+  There is no password: anyone on that network who knows your OBS ID can send speech. Use only a
+  network you trust.
 
 CHANGE THE PORT (default 8787)
   Right-click the tray icon -> "Change port...", type a number from 1024 to 65535, OK.
@@ -42,7 +62,7 @@ First time:
 
 settings.txt (next to the program; stop and start the relay after editing by hand):
  PORT=8787
- HOST=127.0.0.1   only this PC. Use 0.0.0.0 if OBS runs on another PC.
+ HOST=127.0.0.1   only this PC. For another PC see LISTENING ADDRESS above.
  UPDATECHECK=on   or off: the daily update check.
 
 Log: %LOCALAPPDATA%\VoiceStudioOBSRelay\relay.log  (tray menu -> Show log)

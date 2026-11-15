@@ -1,8 +1,15 @@
 # VoiceStudio OBS Connector Relay settings (restart the relay after changing).
 # PORT: the port the relay listens on. The extension's "Relay address" must match.
 PORT=8787
-# HOST: 127.0.0.1 = only this PC (OBS on the same PC). Use 0.0.0.0 if OBS runs on another PC.
+# HOST: the address the relay listens on. 127.0.0.1 = only this PC (OBS on the same PC).
+# For OBS on another PC choose the address of your real home or office network (NOT a VPN adapter):
+# use the tray menu "Listening address (network)..." (Windows), Network Address.command (macOS),
+# network.sh (Linux), or --list-addresses and --set-host. 0.0.0.0 (all adapters) still works but is not recommended.
 HOST=127.0.0.1
 # UPDATECHECK: on = once a day the relay asks GitHub if a newer version exists (it only tells you, it never
 # installs anything, and sends nothing about you). off = never.
 UPDATECHECK=on
+# VOICESTUDIO: where this relay finds VoiceStudio. The extension and OBS only talk to the relay; the relay passes
+# voices, models and speech to VoiceStudio. 127.0.0.1:3900 is right when VoiceStudio runs on this computer.
+# Change it with the tray menu "VoiceStudio address..." (Windows), network.sh / Network Address.command, or --set-voicestudio.
+VOICESTUDIO=http://127.0.0.1:3900
