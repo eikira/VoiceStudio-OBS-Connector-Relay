@@ -77,7 +77,7 @@ test('--check-update: newer, same, older, error, garbage', { skip: SKIP }, async
   const sb = sandbox();
   const cases = [
     ['v9.9.9', 200, 0, /update is available: 9\.9\.9/],
-    ['0.1.1', 200, 0, /newest version \(0\.1\.1\)/],
+    ['0.1.2', 200, 0, /newest version \(0\.1\.2\)/],
     ['0.0.1', 200, 0, /newest version/],
     ['v9.9.9', 500, 1, /Could not check for updates/],
     ['latest', 200, 1, /Could not check for updates/]
@@ -92,7 +92,7 @@ test('--check-update: newer, same, older, error, garbage', { skip: SKIP }, async
       // the download page is always the fixed GitHub page, never what the server sent
       assert.match(r.stdout, /https:\/\/github\.com\/eikira\/VoiceStudio-OBS-Connector-Relay\/releases\/latest/);
       assert.doesNotMatch(r.stdout, /evil\.example/);
-      assert.match(g.hits[0].ua, /^VoiceStudio-OBS-Connector-Relay\/0\.1\.1/);
+      assert.match(g.hits[0].ua, /^VoiceStudio-OBS-Connector-Relay\/0\.1\.2/);
     }
   }
 });
@@ -117,7 +117,7 @@ test('running relay: checks GitHub when on, never when off; /info reports it', {
   try {
     await up(a); await up(b);
     const before = JSON.parse((await req(a.base, 'GET', '/info')).body);
-    assert.strictEqual(before.version, '0.1.1');
+    assert.strictEqual(before.version, '0.1.2');
     assert.strictEqual(before.updateCheck, true);
     assert.strictEqual(before.updateAvailable, false); // not asked yet
     await wait(9500);

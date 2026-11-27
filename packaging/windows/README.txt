@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.1.1 - Windows 10 / 11
+VoiceStudio OBS Connector Relay 0.1.2 - Windows 10 / 11
 =======================================================
 
 What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector

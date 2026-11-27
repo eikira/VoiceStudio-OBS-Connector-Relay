@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-const version = "0.1.1"
+const version = "0.1.2"
 
 var logOut io.Writer = os.Stdout
 

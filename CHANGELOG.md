@@ -1,5 +1,12 @@
 # Changelog (VoiceStudio OBS Connector Relay)
 
+## 0.1.2
+Works with extension 0.3.1 (and 0.3.0, 0.2.0, 0.1.1 as before). Small fix release; nothing else changed.
+
+- **Fixed: the Copy button on the "Listening address" page (/network) did nothing.** The browser only allows its copy function on secure pages; the page opened over a network address (http://192.168...) is not one, so the button silently did nothing. It now copies through a fallback. It shows "Copied" only when the copy worked; otherwise it selects the address and shows "Press Ctrl+C" (Cmd+C on a Mac).
+- **Linux:** the same page now shows a short firewall hint (only on Linux): if the extension on another computer cannot find the relay, check `sudo ufw status` and allow the port.
+- **Tested:** `go test`, `go vet`, the page's script with a simulated browser (copy works / copy blocked). **Not verified:** the button in a real browser on a real network address; the Linux hint on a real Linux machine; macOS (built only).
+
 ## 0.1.1
 Works with extension 0.3.0 (for VoiceStudio the extension needs this relay, 0.1.1 or newer) and, as before, with extension 0.1.1 and 0.2.0 for everything except the new network features.
 

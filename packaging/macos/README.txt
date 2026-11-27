@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.1.1 - macOS (Intel and Apple Silicon)
+VoiceStudio OBS Connector Relay 0.1.2 - macOS (Intel and Apple Silicon)
 =======================================================================
 
 What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector

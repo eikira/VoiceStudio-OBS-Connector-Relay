@@ -1,4 +1,4 @@
-VoiceStudio OBS Connector Relay 0.1.1 - Linux (x64 and ARM64)
+VoiceStudio OBS Connector Relay 0.1.2 - Linux (x64 and ARM64)
 =============================================================
 
 What it is: a small background program that connects the VoiceStudio+SimpleVoice OBS Connector
